@@ -37,6 +37,7 @@ def analyzeDir(target, dry_run=False):
         return
 
     stageFolders(staging, target, dry_run)
+    stageMove(staging, target, dry_run)
     
 
 def stagingAnalysis(stagingDict, file_path, file_type):
@@ -58,6 +59,29 @@ def stageFolders(stagingDict, path, dry_run=False):
             print(f"Irá criar diretório {folder_path}")
         else:
             print(f"Diretório {folder_path} existente")
+
+
+def stageMove(stagingDict, dir_path, dry_run=False):
+    """Mover arquivos para pastas correspondentes."""
+    for extension, files in stagingDict.items():
+        target_dir = os.path.join(dir_path, extension)
+        if os.path.isdir(target_dir) or dry_run:
+            print(f"Arquivos para {extension}:")
+            for file in files:
+                dest_path = os.path.join(target_dir, os.path.basename(file))
+                if dry_run:
+                    print(f"  Irá mover {file} para {dest_path}")
+                else:
+                    try:
+                        move(file, dest_path)
+                        print(f" Arquivo {file} será movido para {dest_path}")
+                    except Exception as e:
+                        print(f"  Erro movendo {file}: {e}")
+        else:
+            print(f"Diretório {target_dir} não é válido")
+            break
+
+
 def main():
     """Recebe os argumentos da linha de comando e executa o organizador de arquivos."""
     parser = argparse.ArgumentParser(description="Organize os arquivos por extensão.")
@@ -69,3 +93,6 @@ def main():
         print(f"Erro: {args.directory} não é um diretório válido")
         return
     analyzeDir(args.directory, args.dry_run)
+
+if __name__ == "__main__":
+    main()
