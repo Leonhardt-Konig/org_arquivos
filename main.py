@@ -5,19 +5,19 @@ import argparse
 
 #valores em outro idioma por preferência pessoal.
 EXT_TO_CATEGORY = {
-    "png": "Bilddatein",
-    "jpg": "Bilddatein",
-    "jpeg": "Bilddatein",
-    "webp":"Bilddatein",
-    "gif": "Bilddatein",
-    "mp4": "Videodatei",
-    "mov": "Videodatei",
-    "avi": "Videodatei",
-    "txt": "Unterlagendatei",
-    "pdf": "Unterlagendatei",
-    "doc": "Unterlagendatei",
-    "docx": "Unterlagendatei",
-    "no_extension": "Sonstige"
+    "png": "Images",
+    "jpg": "Images",
+    "jpeg": "Images",
+    "webp":"Images",
+    "gif": "Images",
+    "mp4": "Videos",
+    "mov": "Videos",
+    "avi": "Videos",
+    "txt": "Documents",
+    "pdf": "Documents",
+    "doc": "Documents",
+    "docx": "Documents",
+    "no_extension": "Others"
 }
 
 def analyzeDir(target, dry_run=False, nsub=False):
@@ -35,9 +35,8 @@ def analyzeDir(target, dry_run=False, nsub=False):
                 if not nsub:
                     staging.setdefault(ext.upper(), []).append(file_path)
                 else:
-                    for key, value in EXT_TO_CATEGORY.items():
-                        if key == ext:
-                            staging.setdefault(value.upper(), []).append(file_path)
+                    category = EXT_TO_CATEGORY.get(ext, "Others")
+                    staging.setdefault(category.upper(), []).append(file_path)
     except Exception as e:
         print(f"Erro: {e}")
         return
@@ -48,14 +47,14 @@ def analyzeDir(target, dry_run=False, nsub=False):
 def stagingAnalysis(stagingDict, file_path, file_type):
     """Análise e separação de arquivos inicial."""
     if file_type:
-        category = EXT_TO_CATEGORY.get(file_type.lower(), "Sonstige")
+        category = EXT_TO_CATEGORY.get(file_type.lower(), "Others")
     else:
-        category = "Sonstige"
+        category = "Others"
     stagingDict.setdefault(category, []).append(file_path)
 
 def stageFolders(stagingDict, path, dry_run=False, nsub=False):
     """Criar pastas para cada extensão."""
-    if nsub: print("Operação sem sub-diretórios")
+    if nsub: print("Operação sem sub-diretórios.")
 
     for key in stagingDict:
         folder_path = os.path.join(path, key)  
@@ -66,13 +65,13 @@ def stageFolders(stagingDict, path, dry_run=False, nsub=False):
 
         elif not dry_run and not os.path.exists(folder_path):
             os.makedirs(folder_path, exist_ok=True) 
-            print(f"Diretório {folder_path} criado")
+            print(f"Diretório {folder_path} criado.")
 
         elif dry_run:
-            print(f"Irá criar diretório {folder_path}")
+            print(f"Irá criar diretório {folder_path}.")
 
         else:
-            print(f"Diretório {folder_path} existente")
+            print(f"Diretório {folder_path} existente.")
 
 
 def stageMove(stagingDict, dir_path, dry_run=False, nsub=False):
@@ -83,24 +82,28 @@ def stageMove(stagingDict, dir_path, dry_run=False, nsub=False):
         if os.path.isdir(target_dir) or dry_run:
             
             for file in files:
-                print(f"Arquivo: {file} movido para: {target_dir}")
+                print(f"Arquivo: {file} movido para: {target_dir}.")
                 dest_path = os.path.join(target_dir, os.path.basename(file))
                 if dry_run:
-                    print(f"Irá mover {file} para {dest_path}")
+                    print(f"Irá mover {file} para {dest_path}.")
                 elif nsub:
-                        try:
-                            move(file, dest_path)
-                            print(f" Arquivo {file} movido para {dest_path}")
-                        except Exception as e:
-                            print(f"  Erro movendo {file}: {e}")
+                    try:
+                        move(file, dest_path)
+                        print(f"Arquivo {file} movido para {dest_path}.")
+                    except PermissionError:
+                        print(f"Erro: Permissão negada ao mover {file}.")
+                    except Exception as e:
+                        print(f"Erro inesperado movendo {file}: {e}.")
                 else:
                     try:
                         move(file, dest_path)
-                        print(f" Arquivo {file} será movido para {dest_path}")
+                        print(f"Arquivo {file} será movido para {dest_path}.")
+                    except PermissionError:
+                        print(f"Erro: Permissão negada ao mover {file}.")
                     except Exception as e:
-                        print(f"  Erro movendo {file}: {e}")
+                        print(f"Erro inesperado movendo {file}: {e}.")
         else:
-            print(f"Diretório {target_dir} não é válido")
+            print(f"Diretório {target_dir} não é válido.")
             break
 
 
